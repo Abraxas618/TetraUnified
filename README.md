@@ -17,7 +17,20 @@ The **TetraUnified Codex** is a comprehensive hyperdimensional archive containin
 
 It bridges quantum physics, consciousness, cryptography, and ethics into a living sovereign lattice.
 
----
+📜 Immutable Archive Access
+The TetraUnified Codex archive has been blockchain-timestamped and permanently preserved.
+
+📦 Download TetraUnified-Monorepo-Final-Fixed.tar.gz via IPFS
+🛡️ Download Blockchain Timestamp Proof (.ots) via IPFS
+Notes:
+The GitHub repository .zip is an auxiliary version for browsing.
+The official Codex archive is the .tar.gz, blockchain anchored in April 2025.
+SHA256 (Original .tar.gz):
+89afcc2c8b219a6077d1f634762dcadd3e4617ca19771991c73891b732c41a74
+
+Timestamp Proof File:
+TetraUnified-Monorepo-Final-Fixed.tar.gz.ots
+Generated and verified via OpenTimestamps (Bitcoin anchored).
 
 ## 🧠 Codex Components
 
