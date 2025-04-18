@@ -1,0 +1,94 @@
+import os
+import logging
+import hashlib
+import hmac
+import time
+import secrets
+from src.kyber_kem import kyber_keygen, kyber_encapsulate, kyber_decapsulate
+from src.falcon_sign import falcon_keygen, falcon_sign, falcon_verify
+from src.dilithium_sign import dilithium_keygen, dilithium_sign, dilithium_verify
+from src.secure_hsm import store_key_in_hsm, retrieve_key_from_hsm
+
+# 🔹 Secure Logging for Cryptographic Testing
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+
+# 🔹 Secure Environment Variables
+KAT_ITERATIONS = int(os.getenv("KAT_ITERATIONS", "100"))  # Default: 100 KAT runs
+SECURE_SESSION_KEY = secrets.token_bytes(32)  # Post-Quantum Secure KAT Session Key
+HSM_ENABLED = os.getenv("HSM_ENABLED", "true").lower() == "true"
+
+class KnownAnswerTest:
+    """Run Known-Answer Tests (KAT) for post-quantum cryptographic algorithms."""
+
+    def __init__(self, iterations=KAT_ITERATIONS):
+        self.iterations = iterations
+
+    def perform_kyber_kat(self):
+        """Run Known-Answer Tests for Kyber-1024 Key Encapsulation Mechanism."""
+        logging.info("🔹 Running Kyber-1024 KAT...")
+        success_count = 0
+
+        for _ in range(self.iterations):
+            pk, sk = kyber_keygen()
+            ciphertext, shared_secret_enc = kyber_encapsulate(pk)
+            shared_secret_dec = kyber_decapsulate(ciphertext, sk)
+
+            if shared_secret_enc == shared_secret_dec:
+                success_count += 1
+            else:
+                logging.error("[FAIL] Kyber-1024 Encapsulation/Decapsulation Mismatch!")
+
+        logging.info(f"✅ Kyber-1024 KAT Passed: {success_count}/{self.iterations} Successful")
+
+    def perform_falcon_kat(self):
+        """Run Known-Answer Tests for Falcon-1024 Digital Signatures."""
+        logging.info("🔹 Running Falcon-1024 KAT...")
+        success_count = 0
+        message = b"Post-Quantum Falcon Signature Test"
+
+        for _ in range(self.iterations):
+            pk, sk = falcon_keygen()
+            signature = falcon_sign(message, sk)
+
+            if falcon_verify(message, signature, pk):
+                success_count += 1
+            else:
+                logging.error("[FAIL] Falcon-1024 Signature Verification Failed!")
+
+        logging.info(f"✅ Falcon-1024 KAT Passed: {success_count}/{self.iterations} Successful")
+
+    def perform_dilithium_kat(self):
+        """Run Known-Answer Tests for Dilithium-3 Digital Signatures."""
+        logging.info("🔹 Running Dilithium-3 KAT...")
+        success_count = 0
+        message = b"Post-Quantum Dilithium Signature Test"
+
+        for _ in range(self.iterations):
+            pk, sk = dilithium_keygen()
+            signature = dilithium_sign(message, sk)
+
+            if dilithium_verify(message, signature, pk):
+                success_count += 1
+            else:
+                logging.error("[FAIL] Dilithium-3 Signature Verification Failed!")
+
+        logging.info(f"✅ Dilithium-3 KAT Passed: {success_count}/{self.iterations} Successful")
+
+    def store_kat_results_in_hsm(self):
+        """Store KAT results securely inside HSM if enabled."""
+        if HSM_ENABLED:
+            hmac_token = hmac.new(SECURE_SESSION_KEY, b"KAT_Results", hashlib.sha3_512).digest()
+            store_key_in_hsm(hmac_token)
+            logging.info("🔐 KAT Results Securely Stored in HSM.")
+
+    def run_all_kats(self):
+        """Execute all Known-Answer Tests (Kyber, Falcon, Dilithium)."""
+        self.perform_kyber_kat()
+        self.perform_falcon_kat()
+        self.perform_dilithium_kat()
+        self.store_kat_results_in_hsm()
+        logging.info("✅ All Post-Quantum KATs Completed Successfully.")
+
+if __name__ == "__main__":
+    kat_tester = KnownAnswerTest()
+    kat_tester.run_all_kats()

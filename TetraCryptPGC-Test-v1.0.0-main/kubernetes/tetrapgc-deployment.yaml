@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tetrapgc
+  labels:
+    app: tetrapgc
+spec:
+  replicas: 2  # Ensure redundancy
+  selector:
+    matchLabels:
+      app: tetrapgc
+  template:
+    metadata:
+      labels:
+        app: tetrapgc
+    spec:
+      securityContext:
+        runAsUser: 1001  # Enforce non-root execution
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+        capabilities:
+          drop: ["ALL"]  # Remove all unnecessary capabilities
+        readOnlyRootFilesystem: true  # Protect against file tampering
+      containers:
+        - name: tetrapgc-container
+          image: baramaystation/tetrapgc-secure:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          env:
+            - name: FIPS_ENABLED
+              value: "true"
+            - name: LD_LIBRARY_PATH
+              value: "/usr/local/lib:/usr/lib"
+            - name: SLH_DSA_LIB
+              value: "/usr/local/lib/libslh_dsa.so"
+            - name: LIBOQS_PATH
+              value: "/usr/local/lib/liboqs.so"
+          volumeMounts:
+            - name: slh-dsa-lib
+              mountPath: /usr/local/lib/libslh_dsa.so
+              readOnly: true
+            - name: liboqs
+              mountPath: /usr/local/lib/liboqs.so
+              readOnly: true
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+      volumes:
+        - name: slh-dsa-lib
+          hostPath:
+            path: /usr/local/lib/libslh_dsa.so
+            type: File
+        - name: liboqs
+          hostPath:
+            path: /usr/local/lib/liboqs.so
+            type: File
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tetrapgc-service
+spec:
+  selector:
+    app: tetrapgc
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+  type: ClusterIP

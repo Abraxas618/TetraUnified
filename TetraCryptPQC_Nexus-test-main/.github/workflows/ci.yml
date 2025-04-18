@@ -1,0 +1,19 @@
+stages:
+  - test
+  - build
+  - deploy
+
+test:
+  script:
+    - npm test
+
+build:
+  script:
+    - npm run build
+  artifacts:
+    paths:
+      - dist/
+
+deploy:
+  script:
+    - podman run --rm -d --network=yggdrasil_net myapp:latest

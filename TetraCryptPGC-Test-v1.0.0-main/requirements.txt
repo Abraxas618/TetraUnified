@@ -1,0 +1,10 @@
+cffi>=1.15.0
+cryptography>=41.0.0
+pycryptodome>=3.18.0
+hkdf>=0.0.3
+requests>=2.31.0
+liboqs-python  # Open Quantum Safe for ML-KEM
+slh-dsa-python  # Official SLH-DSA implementation
+pycparser
+tpm2-pytss  # TPM Integration
+intel-sgx-ra  # SGX Attestation

@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tetracryptpqc
+  namespace: tetracrypt-airgap
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: tetracryptpqc
+  template:
+    metadata:
+      labels:
+        app: tetracryptpqc
+    spec:
+      containers:
+        - name: tetracryptpqc
+          image: localhost:5000/tetracryptpqc:v1.0.0  # Uses air-gapped registry
+          ports:
+            - containerPort: 3000
+          env:
+            - name: NODE_ENV
+              value: "production"
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+              ephemeral-storage: "1Gi"
+            limits:
+              memory: "1Gi"
+              cpu: "1"
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/tetracrypt
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 20
+      volumes:
+        - name: config-volume
+          configMap:
+            name: tetracrypt-config

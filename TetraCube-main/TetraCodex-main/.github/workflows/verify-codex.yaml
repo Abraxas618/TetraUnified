@@ -1,0 +1,45 @@
+name: Verify TetraCodex ZK Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: ⬇️ Checkout Repo
+      uses: actions/checkout@v3
+
+    - name: ⚙️ Install Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+
+    - name: 🧩 Install circom + snarkjs (Circom 2.1.6)
+      run: |
+        curl -s https://sh.rustup.rs | sh -s -- -y
+        source $HOME/.cargo/env
+        git clone https://github.com/iden3/circom.git
+        cd circom
+        git checkout tags/v2.1.6
+        cargo build --release
+        sudo cp target/release/circom /usr/local/bin/
+        cd ..
+        npm install -g snarkjs
+        circom --version
+
+    - name: 🔁 Compile ZK Circuit
+      working-directory: ./zk
+      run: |
+        chmod +x compile.sh
+        ./compile.sh
+
+    - name: ✅ Run Proof Verification
+      working-directory: ./zk
+      run: |
+        chmod +x verify.sh
+        ./verify.sh

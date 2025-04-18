@@ -1,0 +1,59 @@
+
+version: '3.9'
+
+services:
+  yggdrasil:
+    image: ghcr.io/yggdrasil-network/yggdrasil-go:latest
+    container_name: yggdrasil
+    volumes:
+      - ./yggdrasil.conf:/etc/yggdrasil.conf
+    command: ["yggdrasil", "-useconffile", "/etc/yggdrasil.conf"]
+    networks:
+      zknet:
+        ipv6_address: fd00::1
+
+  nexus_rth:
+    build:
+      context: ./nexus_rth
+      dockerfile: Dockerfile
+    depends_on: [yggdrasil]
+    networks:
+      zknet:
+        ipv6_address: fd00::2
+
+  nexus_qidl:
+    build:
+      context: ./nexus_qidl
+      dockerfile: Dockerfile
+    depends_on: [nexus_rth]
+    networks:
+      zknet:
+        ipv6_address: fd00::3
+
+  nexus_chain:
+    build:
+      context: ./nexus_chain
+      dockerfile: Dockerfile
+    depends_on: [nexus_qidl]
+    networks:
+      zknet:
+        ipv6_address: fd00::4
+
+  nexus_api:
+    build:
+      context: ./nexus_api
+      dockerfile: Dockerfile
+    depends_on: [nexus_chain]
+    ports:
+      - "8080:8080"
+    networks:
+      zknet:
+        ipv6_address: fd00::5
+
+networks:
+  zknet:
+    driver: bridge
+    enable_ipv6: true
+    ipam:
+      config:
+        - subnet: fd00::/64

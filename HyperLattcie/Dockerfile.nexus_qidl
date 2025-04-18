@@ -1,0 +1,16 @@
+
+FROM node:18-bullseye-slim
+
+# Install build tools and dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential git curl && \
+    curl -s https://sh.rustup.rs | bash -s -- -y && \
+    . $HOME/.cargo/env && \
+    git clone https://github.com/iden3/circom.git && \
+    cd circom && git checkout tags/v2.1.6 && cargo build --release && \
+    cp target/release/circom /usr/local/bin && cd .. && rm -rf circom && \
+    npm install -g snarkjs
+
+WORKDIR /app
+COPY . .
+CMD ["/bin/bash"]

@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aihids
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: aihids
+  template:
+    metadata:
+      labels:
+        app: aihids
+    spec:
+      containers:
+      - name: aihids
+        image: aihids:latest
+        ports:
+        - containerPort: 9000
+        envFrom:
+        - configMapRef:
+            name: ai-security-config
+        securityContext:
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aihids-service
+spec:
+  selector:
+    app: aihids
+  ports:
+  - protocol: TCP
+    port: 9000
+    targetPort: 9000

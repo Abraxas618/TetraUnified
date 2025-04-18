@@ -1,0 +1,27 @@
+FROM tensorflow/tensorflow:latest-gpu
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Install TensorFlow Privacy and dependencies
+RUN pip install --no-cache-dir \
+    tensorflow-privacy \
+    pandas \
+    scikit-learn \
+    numpy \
+    pqcrypto
+
+# Copy training scripts and models
+COPY train.py .
+COPY models/ ./models/
+COPY config/ ./config/
+COPY key_manager.py .
+
+# Expose training monitoring port
+EXPOSE 6006
+
+CMD ["python", "train.py", "--config", "./config/tf_privacy_config.yaml"]
