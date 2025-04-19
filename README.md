@@ -1,4 +1,4 @@
-
+ACTIVE R&D WORK IN PROGRESS
 # TetraUnified Codex — Sovereign Hyperdimensional Archive
 
 ## 🌌 Overview
